@@ -48,22 +48,21 @@ function App() {
   };
 
   const handleSignup = async () => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      // Create initial button click count
-      await setDoc(doc(db, "users", userCredential.user.uid, "usage", "buttonClicks"), {
-        count: 0,
-      });
-      setEmail("");
-      setPassword("");
-    } catch (error) {
-      console.error("Signup error:", error.message);
-    }
-  };
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+
+    // Create initial button click count safely
+    const userDocRef = doc(db, "users", uid, "usage", "buttonClicks");
+    await setDoc(userDocRef, { count: 0 });
+
+    console.log("User signed up successfully:", uid);
+    setEmail("");
+    setPassword("");
+  } catch (error) {
+    console.error("Signup error:", error.message);
+  }
+};
 
   const handleLogin = async () => {
     try {
