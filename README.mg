@@ -17,5 +17,5 @@ This is a small web application demonstrating integration of frontend, backend, 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/mini-webapp.git
+git clone https://github.com/Josephg141/mini-webapp.git
 cd mini-webapp
