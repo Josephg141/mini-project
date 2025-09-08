@@ -1,0 +1,123 @@
+import { useState, useEffect } from "react";
+import { auth, db } from "./firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
+import { doc, getDoc, setDoc, updateDoc, increment } from "firebase/firestore";
+import "./App.css";
+
+function App() {
+  const [user, setUser] = useState(null); // store current user
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [count, setCount] = useState(0);
+  const [isLogin, setIsLogin] = useState(true); // toggle login/signup
+
+  // Track auth state
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Load count on user login
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchCount = async () => {
+      const docRef = doc(db, "users", user.uid, "usage", "buttonClicks");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setCount(docSnap.data().count);
+      } else {
+        await setDoc(docRef, { count: 0 });
+        setCount(0);
+      }
+    };
+    fetchCount();
+  }, [user]);
+
+  const handleClick = async () => {
+    if (!user) return;
+    const docRef = doc(db, "users", user.uid, "usage", "buttonClicks");
+    await updateDoc(docRef, { count: increment(1) });
+    setCount((prev) => prev + 1);
+  };
+
+  const handleSignup = async () => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      // Create initial button click count
+      await setDoc(doc(db, "users", userCredential.user.uid, "usage", "buttonClicks"), {
+        count: 0,
+      });
+      setEmail("");
+      setPassword("");
+    } catch (error) {
+      console.error("Signup error:", error.message);
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      setEmail("");
+      setPassword("");
+    } catch (error) {
+      console.error("Login error:", error.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
+
+  if (!user) {
+    return (
+      <div className="container">
+        <h1>{isLogin ? "Login" : "Signup"}</h1>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button onClick={isLogin ? handleLogin : handleSignup}>
+          {isLogin ? "Login" : "Signup"}
+        </button>
+        <p className="toggle" onClick={() => setIsLogin(!isLogin)}>
+          {isLogin
+            ? "Don't have an account? Sign up"
+            : "Already have an account? Login"}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container">
+      <h1>Button Click Tracker</h1>
+      <p>Welcome, {user.email}</p>
+      <p>Click count: {count}</p>
+      <button onClick={handleClick}>Click me!</button>
+      <button onClick={handleLogout} style={{ marginTop: 10 }}>
+        Logout
+      </button>
+    </div>
+  );
+}
+
+export default App;
