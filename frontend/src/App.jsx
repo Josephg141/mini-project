@@ -8,6 +8,13 @@ import {
 import { doc, getDoc, setDoc, updateDoc, increment } from "firebase/firestore";
 import "./App.css";
 
+// backend URL CLOUD 
+const BACKEND_URL = "https://mini-project-473337397291.us-central1.run.app"; // your Cloud Run URL
+
+// Example for ping
+fetch(`${BACKEND_URL}/ping`).then(res => res.text()).then(console.log);
+
+
 function App() {
   const [user, setUser] = useState(null); // store current user
   const [email, setEmail] = useState("");

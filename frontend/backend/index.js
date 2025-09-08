@@ -2,8 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const admin = require("firebase-admin");
 
-// Use service account stored locally or via environment variable
-const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_JSON || require("./serviceAccountKey.json"));
+// Use service account JSON file
+const serviceAccount = require("./serviceAccountKey.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
@@ -14,11 +14,9 @@ app.use(cors());
 app.use(express.json());
 
 // Test endpoint
-app.get("/ping", (req, res) => {
-  res.send("pong 🏓 backend alive");
-});
+app.get("/ping", (req, res) => res.send("pong 🏓 backend alive"));
 
-// Protected endpoint: get user info and click count
+// Get user info and click count
 app.get("/me", async (req, res) => {
   try {
     const idToken = req.headers.authorization?.split("Bearer ")[1];
@@ -61,5 +59,6 @@ app.post("/click", async (req, res) => {
   }
 });
 
+// Use Cloud Run port
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
